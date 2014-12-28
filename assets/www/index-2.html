@@ -1,0 +1,283 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="viewport" content="user-scalable=1, initial-scale=1, minimum-scale=1, maximum-scale=4, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700&amp;subset=latin,latin-ext'
+        rel='stylesheet' type='text/css' />
+    <!-- Load css styles -->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-responsive.css" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link rel="stylesheet" type="text/css" href="css/pluton.css" />
+    <!--[if IE 7]>
+            <link rel="stylesheet" type="text/css" href="css/pluton-ie7.css" />
+        <![endif]-->
+    <link rel="stylesheet" type="text/css" href="css/jquery.cslider.css" />
+    <link rel="stylesheet" type="text/css" href="css/jquery.bxslider.css" />
+    <link rel="stylesheet" type="text/css" href="css/animate.css" />
+    <title>H+</title>
+    <!--<style type="text/css">
+        div
+        {
+            border: 1px solid black;
+        }
+        input
+        {
+            width: 100%;
+        }
+    </style>-->
+    <style type="text/css">
+        .fileUpload
+        {
+            position: relative;
+            overflow: hidden;
+            margin: 10px;
+        }
+        .fileUpload input.upload
+        {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 0;
+            padding: 0;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            filter: alpha(opacity=0);
+        }
+        input
+        {
+            width: 100%;
+        }
+    </style>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript" charset="utf-8">
+
+
+        // var deviceReady = false;
+        document.addEventListener("deviceready", onDeviceReady, false);
+
+        /**
+        * Take picture with camera
+        */
+        function takePicture() {
+            navigator.camera.getPicture(
+            function (uri) {
+                var img = document.getElementById('camera_image');
+                img.style.visibility = "visible";
+                img.style.display = "block";
+                img.src = uri;
+                document.getElementById('camera_status').innerHTML = "Success";
+
+                var blob = dataURItoBlob(uri);
+                var fd = document.getElementById('form');
+                fd.append("img_src", blob);
+                $("img_src").val(img.src);
+
+            },
+            function (e) {
+                console.log("Error getting picture: " + e);
+                document.getElementById('camera_status').innerHTML = "Error getting picture.";
+            },
+            { quality: 50, destinationType: navigator.camera.DestinationType.FILE_URI });
+            
+        };
+
+
+
+        /**
+        * Select picture from library
+        */
+        function selectPicture() {
+            navigator.camera.getPicture(
+            function (uri) {
+                var img = document.getElementById('camera_image');
+                img.style.visibility = "visible";
+                img.style.display = "block";
+                img.src = uri;
+                document.getElementById('camera_status').innerHTML = "Success";
+            },
+            function (e) {
+                console.log("Error getting picture: " + e);
+                document.getElementById('camera_status').innerHTML = "Error getting picture.";
+            },
+            { quality: 50, destinationType: navigator.camera.DestinationType.FILE_URI, sourceType: navigator.camera.PictureSourceType.PHOTOLIBRARY });
+        };
+
+        /**
+        * Upload current picture
+        */
+        function uploadPicture() {
+
+            // Get URI of picture to upload
+            var img = document.getElementById('camera_image');
+            var imageURI = img.src;
+            if (!imageURI || (img.style.display == "none")) {
+                document.getElementById('camera_status').innerHTML = "Take picture or select picture from library first.";
+                return;
+            }
+
+            // Verify server has been entered
+            //server = document.getElementById('serverUrl').value;
+            server = "http://health-plus.esy.es/upload.php";
+            if (server) {
+
+                // Specify transfer options
+                var options = new FileUploadOptions();
+                options.fileKey = "file";
+                options.fileName = imageURI.substr(imageURI.lastIndexOf('/') + 1);
+                options.mimeType = "image/jpeg";
+                options.chunkedMode = false;
+                options.headers = {
+                    Connection: "close"
+                };
+
+                // Transfer picture to server
+                var ft = new FileTransfer();
+                ft.upload(imageURI, server, function (r) {
+                    document.getElementById('camera_status').innerHTML = "Upload successful: " + r.bytesSent + " bytes uploaded.";
+                }, function (error) {
+                    document.getElementById('camera_status').innerHTML = "Upload failed: Code = " + error.code;
+                }, options, true);
+            }
+        }
+
+        function dataURItoBlob(dataURI) {
+            // convert base64/URLEncoded data component to raw binary data held in a string
+            var byteString;
+            if (dataURI.split(',')[0].indexOf('base64') >= 0)
+                byteString = atob(dataURI.split(',')[1]);
+            else
+                byteString = unescape(dataURI.split(',')[1]);
+
+            // separate out the mime component
+            var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+            // write the bytes of the string to a typed array
+            var ia = new Uint8Array(byteString.length);
+            for (var i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+
+            return new Blob([ia], { type: mimeString });
+        }
+
+        /**
+        * View pictures uploaded to the server
+        */
+        function viewUploadedPictures() {
+
+            // Get server URL
+            //server = document.getElementById('serverUrl').value;
+            server = "http://health-plus.esy.es/upload.php";
+            if (server) {
+
+                // Get HTML that lists all pictures on server using XHR	
+                var xmlhttp = new XMLHttpRequest();
+
+                // Callback function when XMLHttpRequest is ready
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState === 4) {
+
+                        // HTML is returned, which has pictures to display
+                        if (xmlhttp.status === 200) {
+                            document.getElementById('server_images').innerHTML = xmlhttp.responseText;
+                        }
+
+                        // If error
+                        else {
+                            document.getElementById('server_images').innerHTML = "Error retrieving pictures from server.";
+                        }
+                    }
+                };
+                xmlhttp.open("GET", server, true);
+                xmlhttp.send();
+            }
+        }
+
+        /**
+        * Function called when page has finished loading.
+        */
+        function init() {
+            document.addEventListener("deviceready", function () { deviceReady = true; }, false);
+            window.setTimeout(function () {
+                if (!deviceReady) {
+                    alert("Error: PhoneGap did not initialize.  Demo will not run correctly.");
+                }
+            }, 2000);
+        }
+
+    </script>
+</head>
+<body onload="init();" style="min-height: 1000px; width: auto;">
+    <div>
+        <img alt="" id="logo" src="img/logo.png" style="width: 50%; height: auto; background-color: Highlight;" />
+    </div>
+    <!--<h3>
+        Health +</h3>
+    <!--<div>
+        <h3>
+            Server URL for upload.php:</h3>
+        <input id="serverUrl" type="hidden" value="http://health-plus.esy.es/upload.php" />
+    </div>-->
+    <!-- <br />
+    <!-- Camera -->
+    <!--<div>
+        <h3>
+            Camera:</h3>
+        <b>Status:</b> <span id="camera_status"></span>
+        <br/>
+        <b>Image:</b>
+        <img style="visibility: hidden; display: none;" id="camera_image" src="" alt="" />
+    </div>-->
+    <!-- Actions -->
+    <form action="http://health-plus.esy.es/upload2.php" enctype="multipart/form-data"
+    id="form" method="post" name="form">
+    <div>
+        <h2>
+            NAME:
+        </h2>
+        <input type="text" name="name" id="name" /><br />
+        <h2>
+            PHONE:
+        </h2>
+        <input type="text" name="Phone" id="phone" /><br />
+        <h2>
+            ADDRESS:
+        </h2>
+        <input type="text" name="address" id="address" /><br />
+        <!--<h2>
+                        SELECT FILE:
+                    </h2>-->
+        <div>
+            <input type="button" class="fileUpload btn btn-primary" onclick="takePicture();"
+                value="Take Picture" /><br />
+            <!--<input type="file" capture="camera" accept="image/*" id="camera_image" name="camera"  />-->
+            <img style="visibility: hidden; display: none;" id="camera_image" name="camera" src=""
+                alt="" />
+        </div>
+        <div>
+            <input type="text" style="visibility:hidden;" id="img_type" name="img_type" value="" />
+            <input type="hidden" id="img_src" name="img_src" value="" />
+            <input type="text" style="visibility:hidden;" id="img_size" name="img_size" value="" />
+            <input type="text" style="visibility:hidden;" id="img_name" name="img_name" value="" />
+        </div>
+        <div class="fileUpload btn btn-primary">
+            <span>Click to Select Prescription Photo</span>
+            <input type="file" class="upload" name="userfile" id="pic1" />
+        </div>
+        <br />
+    </div>
+    <div>
+        <!--<input type="button" onclick="selectPicture();" value="Select Picture from Library" /><br />
+                    <!--<input type="button" onclick="uploadPicture();" value="Upload Picture" />-->
+        <input class="fileUpload btn btn-primary" id="submit" name="submit" type="submit"
+            value="Upload" />
+    </div>
+    </form>
+</body>
+</html>

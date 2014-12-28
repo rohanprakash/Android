@@ -2,6 +2,7 @@
 package com.ibm.swgtc.demo.upload;
 import android.os.Bundle;
 import com.phonegap.*;
+import android.webkit.WebSettings;
 
 public class CameraUpload extends DroidGap {
 
@@ -21,5 +22,8 @@ public class CameraUpload extends DroidGap {
     	        
         // Load our app
     	this.loadUrl("file:///android_asset/www/index.html");
+		super.appView.getSettings().setBuiltInZoomControls(true); 
+ 
+super.appView.getSettings().setSupportZoom(true); 
     }    
 }

@@ -3,10 +3,23 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="format-detection" content="telephone=no" />
-    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <meta name="viewport" content="user-scalable=1, initial-scale=1, minimum-scale=1, maximum-scale=4, width=device-width, height=device-height, target-densitydpi=device-dpi" />
     <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700&amp;subset=latin,latin-ext'
+        rel='stylesheet' type='text/css'>
+    <!-- Load css styles -->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-responsive.css" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link rel="stylesheet" type="text/css" href="css/pluton.css" />
+    <!--[if IE 7]>
+            <link rel="stylesheet" type="text/css" href="css/pluton-ie7.css" />
+        <![endif]-->
+    <link rel="stylesheet" type="text/css" href="css/jquery.cslider.css" />
+    <link rel="stylesheet" type="text/css" href="css/jquery.bxslider.css" />
+    <link rel="stylesheet" type="text/css" href="css/animate.css" />
     <title>H+</title>
-    <style type="text/css">
+    <!--<style type="text/css">
         div
         {
             border: 1px solid black;
@@ -15,6 +28,26 @@
         {
             width: 100%;
         }
+    </style>-->
+    <style type="text/css">
+        .fileUpload
+        {
+            position: relative;
+            overflow: hidden;
+            margin: 10px;
+        }
+        .fileUpload input.upload
+        {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 0;
+            padding: 0;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            filter: alpha(opacity=0);
+        }
     </style>
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
@@ -22,119 +55,6 @@
 
         // var deviceReady = false;
         document.addEventListener("deviceready", onDeviceReady, false);
-
-        /**
-        * Take picture with camera
-        */
-        function takePicture() {
-            navigator.camera.getPicture(
-            function (uri) {
-                var img = document.getElementById('camera_image');
-                img.style.visibility = "visible";
-                img.style.display = "block";
-                img.src = uri;
-                document.getElementById('camera_status').innerHTML = "Success";
-            },
-            function (e) {
-                console.log("Error getting picture: " + e);
-                document.getElementById('camera_status').innerHTML = "Error getting picture.";
-            },
-            { quality: 50, destinationType: navigator.camera.DestinationType.FILE_URI });
-        };
-
-        /**
-        * Select picture from library
-        */
-        function selectPicture() {
-            navigator.camera.getPicture(
-            function (uri) {
-                var img = document.getElementById('camera_image');
-                img.style.visibility = "visible";
-                img.style.display = "block";
-                img.src = uri;
-                document.getElementById('camera_status').innerHTML = "Success";
-            },
-            function (e) {
-                console.log("Error getting picture: " + e);
-                document.getElementById('camera_status').innerHTML = "Error getting picture.";
-            },
-            { quality: 50, destinationType: navigator.camera.DestinationType.FILE_URI, sourceType: navigator.camera.PictureSourceType.PHOTOLIBRARY });
-        };
-
-        /**
-        * Upload current picture
-        */
-        function uploadPicture() {
-
-            // Get URI of picture to upload
-            var img = document.getElementById('camera_image');
-            var imageURI = img.src;
-            if (!imageURI || (img.style.display == "none")) {
-                document.getElementById('camera_status').innerHTML = "Take picture or select picture from library first.";
-                return;
-            }
-
-            // Verify server has been entered
-            //server = document.getElementById('serverUrl').value;
-            server = "http://health-plus.esy.es/upload.php";
-            if (server) {
-
-                // Specify transfer options
-                var options = new FileUploadOptions();
-                options.fileKey = "file";
-                options.fileName = imageURI.substr(imageURI.lastIndexOf('/') + 1);
-                options.mimeType = "image/jpeg";
-                options.chunkedMode = false;
-                options.headers = {
-                    Connection: "close"
-                };
-
-                // Transfer picture to server
-                var ft = new FileTransfer();
-                ft.upload(imageURI, server, function (r) {
-                    document.getElementById('camera_status').innerHTML = "Upload successful: " + r.bytesSent + " bytes uploaded.";
-                }, function (error) {
-                    document.getElementById('camera_status').innerHTML = "Upload failed: Code = " + error.code;
-                }, options, true);
-            }
-        }
-
-        /**
-        * View pictures uploaded to the server
-        */
-        function viewUploadedPictures() {
-
-            // Get server URL
-            //server = document.getElementById('serverUrl').value;
-            server = "http://health-plus.esy.es/upload.php";
-            if (server) {
-
-                // Get HTML that lists all pictures on server using XHR	
-                var xmlhttp = new XMLHttpRequest();
-
-                // Callback function when XMLHttpRequest is ready
-                xmlhttp.onreadystatechange = function () {
-                    if (xmlhttp.readyState === 4) {
-
-                        // HTML is returned, which has pictures to display
-                        if (xmlhttp.status === 200) {
-                            document.getElementById('server_images').innerHTML = xmlhttp.responseText;
-                        }
-
-                        // If error
-                        else {
-                            document.getElementById('server_images').innerHTML = "Error retrieving pictures from server.";
-                        }
-                    }
-                };
-                xmlhttp.open("GET", server, true);
-                xmlhttp.send();
-            }
-        }
-
-        /**
-        * Function called when page has finished loading.
-        */
         function init() {
             document.addEventListener("deviceready", function () { deviceReady = true; }, false);
             window.setTimeout(function () {
@@ -143,56 +63,48 @@
                 }
             }, 2000);
         }
+        function callAnothePage() {
+            window.location = "index-2.html";
+        }
 
     </script>
 </head>
-<body onload="init();">
-    <h3>
-        Health +</h3>
-    <!--<div>
-        <h3>
-            Server URL for upload.php:</h3>
-        <input id="serverUrl" type="hidden" value="http://health-plus.esy.es/upload.php" />
-    </div>-->
-    <br />
-    <!-- Camera -->
-    <div>
-        <h3>
-            Camera:</h3>
-        <b>Status:</b> <span id="camera_status"></span>
-        <br/>
-        <b>Image:</b>
-        <img style="visibility: hidden; display: none;" id="camera_image" src="" alt="" />
-    </div>
-    <!-- Actions -->
-    <form action="http://health-plus.esy.es/upload2.php" enctype="multipart/form-data" id="form" method="post" name="form">
-    <div>
-        <input type="text" name="name" id="name" /><br />
-        <input type="text" name="Phone" id="phone" /><br />
-        <input type="text" name="address" id="address" />
-    </div>
-    <div>
-        <input type="button" onclick="takePicture();" value="Take Picture" /><br />
-        <input type="button" onclick="selectPicture();" value="Select Picture from Library" /><br />
-        <!--<input type="button" onclick="uploadPicture();" value="Upload Picture" />-->
-        <input id="submit" name="submit" type="submit" value="Upload" />
-    </div>
-    </form>
-    <br />
-    <!-- Server pictures -->
-    <!--<div>
-        <h3>
-            Server:</h3>
-        <b>Images on server:</b>
-        <div id="server_images">
+<body onload="init();" style="min-height: 100%; width: auto;">
+    <div class="navbar">
+        <div class="navbar-inner">
+            <div class="container">
+                <div>
+                    <img alt="" id="logo" src="img/logo.png" style="width: 50%; height: auto; background-color: Highlight;" />
+                </div>
+                <div>
+                    <h2>
+                        MAX HEALTH.. AT MIN. PRICE..
+                    </h2>
+                </div>
+                <div>
+                    <ul>
+                        <li>MEDICINE</li>
+                        <li>PATHOLOGY</li>
+                        <li>ULTRASOUND</li>
+                        <li>X-RAY</li>
+                    </ul>
+                </div>
+                <div>
+                    <h2>
+                        HOME DELIVERY OF MEDICINES & HOME COLLECTION ALSO AVAILABLE
+                    </h2>
+                </div>
+                <div>
+                    <h2>
+                        CONTACT NUMBER - +91-9336346030
+                    </h2>
+                </div>
+                <div>
+                    <button name="buttonClick" onclick="callAnothePage()" class="fileUpload btn btn-primary">
+                        NEXT</button>
+                </div>
+            </div>
         </div>
-    </div>
-    <!-- Actions -->
-    <!--<div>
-        <input type="button" onclick="viewUploadedPictures();" value="View Uploaded Pictures" />
-    </div>-->-->
-    <div id="message">
-        <?php include 'uploadphp.php';?>
     </div>
 </body>
 </html>
